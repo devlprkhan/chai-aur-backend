@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "This is a complete backend training course with chain-aur-code channel",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js"
   },
   "keywords": [
     "Javascript",
@@ -12,5 +13,9 @@
     "devlprKhan"
   ],
   "author": "Haseeb Khan",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "prettier": "^3.1.1"
+  }
 }
