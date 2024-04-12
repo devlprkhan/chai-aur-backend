@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary'
+import { extractPublicId } from 'cloudinary-build-url'
 import fs from 'fs'
 
 //? Configure Cloudinary ENV
@@ -17,7 +18,7 @@ const uploadOnCloudinary = async (localFilePath) => {
       resource_type: 'auto',
     });
 
-    console.log("File uploaded successfully: ", response.url);
+    // console.log("File uploaded successfully: ", response.url);
 
     //* Delete local file from our local server as well
     fs.unlinkSync(localFilePath)
@@ -28,4 +29,25 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 }
 
-export { uploadOnCloudinary }
+const deleteFromCloudinary = async (url) => {
+  try {
+    if (!url) {
+      console.log('No url provided for deletion');
+      return;
+    }
+
+    const publicId = extractPublicId(url)
+
+    //* Delete file from Cloudinary server
+    const response = await cloudinary.uploader.destroy(publicId, {
+      resource_type: 'image',
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Error deleting file from Cloudinary: ", error);
+    return null;
+  }
+}
+
+export { uploadOnCloudinary, deleteFromCloudinary }
