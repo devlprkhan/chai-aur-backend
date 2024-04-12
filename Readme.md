@@ -1,3 +1,3 @@
-# Chain aur Backend With Sir Hitesh Chaudhary
+# Chain aur Backend
 
 The Data Model Link - [Model Link](https://app.eraser.io/workspace/BrvIyazuWmOWtPgcUjHc?origin=share)
