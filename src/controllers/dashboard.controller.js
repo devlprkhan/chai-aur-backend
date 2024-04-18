@@ -6,7 +6,6 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 
-//* Inprogress: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
 const getChannelStats = asyncHandler(async (req, res) => {
   const userId = req.user._id
 
@@ -21,7 +20,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
   const videoStats = await Video.aggregate([
     {
       $match: {
-        owner: mongoose.Types.ObjectId(userId)
+        owner: new mongoose.Types.ObjectId(userId)
       }
     },
     {
@@ -53,7 +52,6 @@ const getChannelStats = asyncHandler(async (req, res) => {
     )
 })
 
-//* Inprogress: Get all the videos uploaded by the channel
 const getChannelVideos = asyncHandler(async (req, res) => {
   const userId = req.user._id
 

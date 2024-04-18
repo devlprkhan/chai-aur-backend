@@ -82,7 +82,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
       likedBy: userId
     })
 
-    res.status(201).json(new ApiResponse(201, newLike, "Comment liked successfully."))
+    res.status(201).json(new ApiResponse(201, newLike, "Tweet liked successfully."))
   }
 })
 
@@ -94,6 +94,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid user ID.")
   }
 
+  // TODO: Use aggregation pipeline instead
   //* Extract all liked videos of user and sort by newest first
   const likedVideos = await Like.find({ likedBy: userId, video: { $ne: null } })
     .sort({ createdAt: -1 })

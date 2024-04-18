@@ -26,7 +26,6 @@ import likeRouter from "./routes/like.routes.js"
 import playlistRouter from "./routes/playlist.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
 
-//TODO: Make the "/api/v1/" Global constant
 //* Routes Declaration
 app.use(`${API_VERSION}/healthcheck`, healthcheckRouter);
 app.use(`${API_VERSION}/users`, userRoute);
