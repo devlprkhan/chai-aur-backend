@@ -49,8 +49,8 @@ const getUserTweets = asyncHandler(async (req, res) => {
 })
 
 const updateTweet = asyncHandler(async (req, res) => {
-  const { tweetId } = await req.params
-  const { content } = await req.body
+  const { tweetId } = req.params
+  const { content } = req.body
 
   if (!tweetId && !content) {
     throw new ApiError(400, "Please provide the proper data.")
@@ -64,7 +64,9 @@ const updateTweet = asyncHandler(async (req, res) => {
     {
       new: true
     }
-  );
+  )
+    .populate('owner', 'username fullName avatar')
+    .exec();
 
   if (!updatedTweet) {
     throw new ApiError(404, "Tweet not exits.")
@@ -78,13 +80,15 @@ const updateTweet = asyncHandler(async (req, res) => {
 })
 
 const deleteTweet = asyncHandler(async (req, res) => {
-  const { tweetId } = await req.params
+  const { tweetId } = req.params
 
   if (!tweetId) {
     throw new ApiError(400, "Please provide the proper data.")
   }
 
   const deletedTweet = await Tweet.findByIdAndDelete(tweetId)
+    .populate('owner', 'username fullName avatar')
+    .exec();
 
   if (!deletedTweet) {
     throw new ApiError(404, "Tweet not found.")

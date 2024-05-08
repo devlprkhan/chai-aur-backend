@@ -5,7 +5,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 
-//* Inprogress: toggle subscription
+//* Take a look there is something else which is not right like the "subscriber & channel" is contain duplicate same value etc
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params
   const userId = req.user._id
@@ -26,27 +26,101 @@ const toggleSubscription = asyncHandler(async (req, res) => {
       subscriber: userId,
       channel: channelId
     })
-    res.status(201).json(new ApiResponse(201, newSubscription, "Channel subscribed successfully."))
+
+    const detailedSubscription = await Subscription.aggregate([
+      {
+        $match: {
+          _id: newSubscription._id
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          foreignField: "_id",
+          localField: "subscriber",
+          as: "subscriber",
+        }
+      },
+      {
+        $unwind: "$subscriber"
+      },
+      {
+        $lookup: {
+          from: "users",
+          foreignField: "_id",
+          localField: "channel",
+          as: "channel",
+        }
+      },
+      {
+        $unwind: "$channel"
+      },
+      {
+        $project: {
+          _id: 1,
+          subscriber: {
+            _id: 1,
+            username: 1,
+            avatar: 1,
+            fullName: 1,
+          },
+          channel: {
+            _id: 1,
+            username: 1,
+            avatar: 1,
+            fullName: 1,
+          },
+          createdAt: 1,
+          updatedAt: 1
+        }
+      }
+    ])
+
+    console.log('Checker 1: ---------------', detailedSubscription);
+
+    res.status(201).json(new ApiResponse(201, detailedSubscription[0], "Channel subscribed successfully."))
   }
 })
 
-//* Inprogress: controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
-  const { channelId } = req.params
+  const { subscriberId } = req.params
 
-  if (!isValidObjectId(channelId)) {
+
+  if (!isValidObjectId(subscriberId)) {
     throw new ApiError(400, "Invalid channel ID.")
   }
 
   //* Fetching all subscribers to the channel
-  const subscriptions = await Subscription.find({ channel: channelId }).populate('subscriber');
+  const subscribers = await Subscription.aggregate([
+    {
+      $match: {
+        subscriber: new mongoose.Types.ObjectId(subscriberId)
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "subscriber",
+        foreignField: "_id",
+        as: "subscriber"
+      }
+    },
+    {
+      $unwind: "$subscriber" // Convert owner from array to object
+    },
+    {
+      $project: {
+        _id: "$_id",
+        username: "$subscriber.username",
+        avatar: "$subscriber.avatar",
+        fullName: "$subscriber.fullName"
+      }
+    }
+  ])
 
-  if (!subscriptions.length) {
+  if (!subscribers.length) {
     throw new ApiError(404, "No subscriber found.")
   }
-
-  //* Extract subscriber details
-  const subscribers = subscriptions.map(subscription => subscription.subscriber)
 
   return res
     .status(200)
@@ -55,23 +129,45 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     )
 })
 
-//* Inprogress: controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-  const { subscriberId } = req.params;
+  const { channelId } = req.params;
 
-  if (!isValidObjectId(subscriberId)) {
+
+  if (!isValidObjectId(channelId)) {
     throw new ApiError(400, "Invalid subscriber ID.");
   }
 
   //* Fetching all channels to which the user has subscribed
-  const subscriptions = await Subscription.find({ subscriber: subscriberId }).populate('channel');
+  const channels = await Subscription.aggregate([
+    {
+      $match: {
+        channel: new mongoose.Types.ObjectId(channelId)
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "channel",
+        foreignField: "_id",
+        as: "channel"
+      }
+    },
+    {
+      $unwind: "$channel" // Convert owner from array to object
+    },
+    {
+      $project: {
+        _id: "$_id",
+        username: "$channel.username",
+        avatar: "$channel.avatar",
+        fullName: "$channel.fullName"
+      }
+    }
+  ])
 
-  if (!subscriptions.length) {
+  if (!channels.length) {
     throw new ApiError(404, "No channels found for this subscriber.");
   }
-
-  //* Extract channel details
-  const channels = subscriptions.map(subscription => subscription.channel);
 
   return res
     .status(200)
